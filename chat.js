@@ -1,9 +1,9 @@
 let fs = require("fs")
 let textByLine = fs.readFileSync('splitChat.txt').toString().split("\n");
-let regex = /\[(\d+\/\d+\/\d+),\s+(\d+:\d+:\d+\s+[a|p]m)\]\s(\w.+):\s(.+)/;
-split = null; 
+const regex = /\[(\d+\/\d+\/\d+),\s+(\d+:\d+:\d+\s+[a|p]m)\]\s(\w.+):\s(.+)/;
+let split = null; 
 let participants = ["Mridul Karen FF", "Anubhav"];
-
+const months =["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 let DATE = 1; 
 let NAME = 3; 
 let MESSAGE  = 4; 
@@ -67,31 +67,5 @@ function getPrettyTime(ms){
     return `${Math.floor(days)} days or ${Math.floor(hours)} hours or ${Math.floor(minutes)} minutes or ${Math.floor(seconds)} seconds`;
 }
 function getMonth(date){
-    switch(date){
-        case "1":
-            return "Jan";
-        case "2":
-            return "Feb";
-        case "3":
-            return "Mar";
-        case "4":
-            return "Apr";
-        case "5":
-            return "May";
-        case "6":
-            return "Jun";
-        case "7":
-            return "Jul";
-        case "8":
-            return "Aug";
-        case "9":
-            return "Sep";
-        case "10":
-            return "Oct";
-        case "11":
-            return "Nov";
-        case "12":
-            return "Dec";
-
-    }
+    return months[data-1];
 }
