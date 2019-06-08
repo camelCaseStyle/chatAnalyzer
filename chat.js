@@ -45,6 +45,7 @@ function getLongestResponseTime(){
 }
 function getNextConversation(idx){
     for(let i = idx; i < split.length; i++){
+        // other participant in the conversation 
         if(split[i][NAME] === participants[1]){
             return split[i];
         }
@@ -67,5 +68,5 @@ function getPrettyTime(ms){
     return `${Math.floor(days)} days or ${Math.floor(hours)} hours or ${Math.floor(minutes)} minutes or ${Math.floor(seconds)} seconds`;
 }
 function getMonth(date){
-    return months[data-1];
+    return months[date-1];
 }
