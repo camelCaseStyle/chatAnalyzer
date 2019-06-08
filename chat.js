@@ -1,8 +1,8 @@
 let fs = require("fs")
-let textByLine = fs.readFileSync('_chat 2.txt').toString().split("\n");
+let textByLine = fs.readFileSync('splitChat.txt').toString().split("\n");
 let regex = /\[(\d+\/\d+\/\d+),\s+(\d+:\d+:\d+\s+[a|p]m)\]\s(\w.+):\s(.+)/;
 split = null; 
-let participants = ["Kanu Tandon", "Brindha"];
+let participants = ["Anubhav", "Mridul Karen FF"];
 
 let DATE = 1; 
 let NAME = 3; 
@@ -15,6 +15,7 @@ function splitEachLine(){
     // for every element in the array add a JS date object 
     split = split.map(elem =>{
         let date; 
+      
         elem[1] = function(){
             if(elem != null){
                 date = elem[1].split("/");
@@ -25,6 +26,7 @@ function splitEachLine(){
         }(); 
         return elem; 
     })
+    //console.log(split)
 }
 // get each line ready
 splitEachLine(); 
@@ -35,13 +37,15 @@ function getLongestResponseTime(){
     for(let i = 0; i < split.length; i++){
         if(split[i][NAME] === participants[0]){
             let responseTime = getResponseTime(split[i], getNextConversation(i));
+            
             if(responseTime > largest){
                 largest = responseTime; 
                 conv = split[i];
+                // console.log(split[i] + "\n "+ getNextConversation(i))
             }    
         }
     }
-    console.log(conv + " \n largest response time = "+largest );
+    console.log(conv +" \n \n" + getPrettyTime(largest));
 }
 function getNextConversation(idx){
     for(let i = idx; i < split.length; i++){
@@ -56,10 +60,16 @@ function getResponseTime(converationOne, conversationTwo){
     if(conversationTwo != undefined){
         return Math.abs(converationOne[DATE] - conversationTwo[DATE]);
     }
-    return; 
+    return NaN;
 }
 
-
+function getPrettyTime(ms){
+    let seconds = ms/1000; 
+    let minutes = seconds/60; 
+    let hours = minutes/60; 
+    let days = hours/24;
+    return `${Math.floor(days)} days or ${Math.floor(hours)} hours or ${Math.floor(minutes)} minutes or ${Math.floor(seconds)} seconds`;
+}
 function getMonth(date){
     switch(date){
         case "1":
