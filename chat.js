@@ -1,6 +1,6 @@
 let fs = require("fs")
 let textByLine = fs.readFileSync('splitChat.txt').toString().split("\n");
-const regex = /\[(\d+\/\d+\/\d+),\s+(\d+:\d+:\d+\s+[a|p]m)\]\s(\w.+):\s(.+)/;
+const regex = new RegExp(/\[(\d+\/\d+\/\d+),\s+(\d+:\d+:\d+\s+[a|p]m)\]\s(\w.+):\s(.+)/);
 let split = null; 
 let participants = ["Mridul Karen FF", "Anubhav"];
 const months =["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -10,8 +10,12 @@ let MESSAGE  = 4;
 
 function splitEachLine(){
     split = textByLine.map(elem =>{
-        return elem.match(regex);
-    })
+        if(regex.test(elem) && elem != null && elem != ""){
+            return elem.match(regex);
+        }
+    }).filter(elem =>{
+        if(elem != undefined) return elem; 
+    }); 
     // for every element in the array add a JS date object 
     split = split.map(elem =>{   
         elem[1] = function(){
@@ -50,14 +54,19 @@ function getNextConversation(idx){
             return split[i];
         }
     }
+    // its possible that this is the last message in the conversation 
+    return null; 
 }
 
 //given two objects calculate response time 
 function getResponseTime(converationOne, conversationTwo){
-    if(conversationTwo != undefined){
-        return Math.abs(converationOne[DATE] - conversationTwo[DATE]);
+    try{
+        if(conversationTwo != undefined){
+            return Math.abs(converationOne[DATE] - conversationTwo[DATE]);
+        }
+    }catch(error){
+        return NaN;
     }
-    return NaN;
 }
 
 function getPrettyTime(ms){
