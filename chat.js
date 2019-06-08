@@ -2,7 +2,7 @@ let fs = require("fs")
 let textByLine = fs.readFileSync('splitChat.txt').toString().split("\n");
 let regex = /\[(\d+\/\d+\/\d+),\s+(\d+:\d+:\d+\s+[a|p]m)\]\s(\w.+):\s(.+)/;
 split = null; 
-let participants = ["Anubhav", "Mridul Karen FF"];
+let participants = ["Mridul Karen FF", "Anubhav"];
 
 let DATE = 1; 
 let NAME = 3; 
@@ -13,16 +13,13 @@ function splitEachLine(){
         return elem.match(regex);
     })
     // for every element in the array add a JS date object 
-    split = split.map(elem =>{
-        let date; 
-      
+    split = split.map(elem =>{   
         elem[1] = function(){
+            let date; 
             if(elem != null){
                 date = elem[1].split("/");
                 return new Date(date[0] + " "+getMonth(date[1]) +" "+ date[2] + " "+ elem[2]); 
             }
-             
-            
         }(); 
         return elem; 
     })
@@ -36,8 +33,7 @@ function getLongestResponseTime(){
     let conv; 
     for(let i = 0; i < split.length; i++){
         if(split[i][NAME] === participants[0]){
-            let responseTime = getResponseTime(split[i], getNextConversation(i));
-            
+            let responseTime = getResponseTime(split[i], getNextConversation(i));        
             if(responseTime > largest){
                 largest = responseTime; 
                 conv = split[i];
