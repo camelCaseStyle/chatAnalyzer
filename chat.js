@@ -3,6 +3,7 @@ let textByLine = fs.readFileSync('splitChat.txt').toString().split("\n");
 const regex = new RegExp(/\[(\d+\/\d+\/\d+),\s+(\d+:\d+:\d+\s+[a|p]m)\]\s(\w.+):\s(.+)/);
 let split = null; 
 let participants = ["Mridul Karen FF", "Anubhav"];
+const ignoreKeywords = ["to", "are", "I", "you", "!", "image", "the", "omitted", "image "];
 const months =["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 let DATE = 1; 
 let NAME = 3; 
@@ -32,6 +33,8 @@ function splitEachLine(){
 // get each line ready
 splitEachLine(); 
 getLongestResponseTime();
+getMostUsedWord();
+
 function getLongestResponseTime(){
     let largest = 0; 
     let conv; 
@@ -78,4 +81,29 @@ function getPrettyTime(ms){
 }
 function getMonth(date){
     return months[date-1];
+}
+function getMostUsedWord(){
+    let wordMap ={}; 
+    split.forEach(elem =>{
+        elem[MESSAGE].split(/\s+/).filter(elem =>{
+            if(elem.includes("image")) console.log(elem)
+            
+            if(!ignoreKeywords.includes(elem.trim())){
+                return elem; 
+            } 
+        }).forEach(elem=>{
+          
+            wordMap[elem] =  (wordMap[elem] || 0) + 1;
+        })
+    });
+    wordsArray = Object.keys(wordMap).map(elem =>{
+        return {
+            name : elem, 
+            total : wordMap[elem]
+        }
+    })
+    wordsArray.sort((a,b)=>{
+        return b.total - a.total;
+    })
+    console.log(wordsArray);
 }
