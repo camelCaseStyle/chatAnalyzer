@@ -1,8 +1,8 @@
 let fs = require("fs")
-let textByLine = fs.readFileSync('splitChat.txt').toString().split("\n");
+let textByLine = fs.readFileSync('_chat 4.txt').toString().split("\n");
 const regex = new RegExp(/\[(\d+\/\d+\/\d+),\s+(\d+:\d+:\d+\s+[a|p]m)\]\s(\w.+):\s(.+)/);
 let split = null; 
-let participants = ["Mridul Karen FF", "Anubhav"];
+let participants = [];
 const ignoreKeywords = ["to", "are", "I", "you", "!", "image", "the", "omitted", "image "];
 const months =["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 let DATE = 1; 
@@ -30,10 +30,17 @@ function splitEachLine(){
     })
     //console.log(split)
 }
+function addParticipants(){
+    split.forEach(elem =>{
+        if(!participants.includes(elem[NAME])){
+            participants.push(elem[NAME]);
+        }
+    })
+    console.log(participants);
+}
 // get each line ready
-splitEachLine(); 
-getLongestResponseTime();
-getMostUsedWord();
+
+
 
 function getLongestResponseTime(){
     let largest = 0; 
@@ -86,7 +93,7 @@ function getMostUsedWord(){
     let wordMap ={}; 
     split.forEach(elem =>{
         elem[MESSAGE].split(/\s+/).filter(elem =>{
-            if(elem.includes("image")) console.log(elem)
+          
             
             if(!ignoreKeywords.includes(elem.trim())){
                 return elem; 
@@ -107,3 +114,14 @@ function getMostUsedWord(){
     })
     console.log(wordsArray);
 }
+function analyze(){
+    // split file into managable conversation objects 
+    splitEachLine(); 
+    // get the list of participants in conversation
+    addParticipants();
+    // get the longest reply time in  conversation 
+    getLongestResponseTime();
+    // get the most used word in conversation
+    getMostUsedWord();
+}
+analyze();
