@@ -1,24 +1,25 @@
 let fs = require("fs")
-let textByLine = fs.readFileSync('_chat 4.txt').toString().split("\n");
-const regex = new RegExp(/\[(\d+\/\d+\/\d+),\s+(\d+:\d+:\d+\s+[a|p]m)\]\s(\w.+):\s(.+)/);
-let split = null; 
+let textByLine = fs.readFileSync('_chat 6.txt').toString().split("\n");
+const regex = new RegExp(/\[(\d+\/\d+\/\d+),\s+(\d+:\d+:\d+\s+[a|p]m)\]\s([a-zA-Z'-\s]+):\s(.+)/);
+let lines; 
 let participants = [];
-const ignoreKeywords = ["to", "are", "I", "you", "!", "image", "the", "omitted", "image "];
+const ignoreKeywords = ["in","is" ,"for", "of", "a","and", "to", "are", "I", "you", "!", "image", "the", "omitted", "image", "video"];
 const months =["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 let DATE = 1; 
 let NAME = 3; 
 let MESSAGE  = 4; 
 
 function splitEachLine(){
-    split = textByLine.map(elem =>{
+    lines = textByLine.map(elem =>{
         if(regex.test(elem) && elem != null && elem != ""){
             return elem.match(regex);
         }
+        
     }).filter(elem =>{
         if(elem != undefined) return elem; 
     }); 
     // for every element in the array add a JS date object 
-    split = split.map(elem =>{   
+    lines = lines.map(elem =>{   
         elem[1] = function(){
             let date; 
             if(elem != null){
@@ -31,12 +32,12 @@ function splitEachLine(){
     //console.log(split)
 }
 function addParticipants(){
-    split.forEach(elem =>{
+    lines.forEach(elem =>{
         if(!participants.includes(elem[NAME])){
             participants.push(elem[NAME]);
         }
     })
-    console.log(participants);
+   console.log("Participants: \n"+participants);
 }
 // get each line ready
 
@@ -45,12 +46,12 @@ function addParticipants(){
 function getLongestResponseTime(){
     let largest = 0; 
     let conv; 
-    for(let i = 0; i < split.length; i++){
-        if(split[i][NAME] === participants[0]){
-            let responseTime = getResponseTime(split[i], getNextConversation(i));        
+    for(let i = 0; i < lines.length; i++){
+        if(lines[i][NAME] === participants[0]){
+            let responseTime = getResponseTime(lines[i], getNextConversation(i));        
             if(responseTime > largest){
                 largest = responseTime; 
-                conv = split[i];
+                conv = lines[i];
                 // console.log(split[i] + "\n "+ getNextConversation(i))
             }    
         }
@@ -58,10 +59,10 @@ function getLongestResponseTime(){
     console.log(conv +" \n \n" + getPrettyTime(largest));
 }
 function getNextConversation(idx){
-    for(let i = idx; i < split.length; i++){
+    for(let i = idx; i < lines.length; i++){
         // other participant in the conversation 
-        if(split[i][NAME] === participants[1]){
-            return split[i];
+        if(lines[i][NAME] !== participants[0]){
+            return lines[i];
         }
     }
     // its possible that this is the last message in the conversation 
@@ -90,19 +91,23 @@ function getMonth(date){
     return months[date-1];
 }
 function getMostUsedWord(){
-    let wordMap ={}; 
-    split.forEach(elem =>{
-        elem[MESSAGE].split(/\s+/).filter(elem =>{
-          
-            
-            if(!ignoreKeywords.includes(elem.trim())){
-                return elem; 
-            } 
-        }).forEach(elem=>{
-          
-            wordMap[elem] =  (wordMap[elem] || 0) + 1;
+    let wordMap ={};
+    let words = [];  
+
+    lines.forEach(elem =>{
+        // for each message split the message by spaces and add word to array 
+        elem[MESSAGE].split(" ").forEach(word =>{
+            word.replace("\\W", "");
+            word = word.trim(); 
+            if(!ignoreKeywords.includes(word) && !word.includes("image" ) && !word.includes("video")){
+                words.push(word);
+            }
         })
     });
+    words.forEach(elem=>{
+        wordMap[elem.toLowerCase()] =  (wordMap[elem.toLowerCase()] || 0) + 1;
+    })
+  
     wordsArray = Object.keys(wordMap).map(elem =>{
         return {
             name : elem, 
@@ -112,8 +117,36 @@ function getMostUsedWord(){
     wordsArray.sort((a,b)=>{
         return b.total - a.total;
     })
-    console.log(wordsArray);
+    console.log("Most commonly used 3 words :");
+    for(let i = 0; i < 3; i++){
+        console.log(wordsArray[i].name);
+    }
 }
+
+function getLongestConversationInDay(){
+    let convFreq = {}; 
+    let sortedFreq = []; 
+    lines.forEach(line =>{
+        convFreq[getFormattedDate(line)] = (convFreq[getFormattedDate(line)] || 0) + 1; 
+    })
+    
+    sortedFreq = Object.keys(convFreq).map(elem =>{
+        return {
+            name: elem,
+            frequency: convFreq[elem] 
+        }
+    })
+    sortedFreq.sort((a,b)=>{
+        return b.frequency - a.frequency;
+    })
+    console.log("You chatted most on "+ sortedFreq[0].name);
+}
+
+function getFormattedDate(conversation){
+    return conversation[DATE].getDate()+"/"+(conversation[DATE].getMonth()+1)+"/"+conversation[DATE].getFullYear().toString().slice(2); 
+}
+
+
 function analyze(){
     // split file into managable conversation objects 
     splitEachLine(); 
@@ -123,5 +156,7 @@ function analyze(){
     getLongestResponseTime();
     // get the most used word in conversation
     getMostUsedWord();
+    // get day on which most conversations took place 
+    getLongestConversationInDay(); 
 }
 analyze();
