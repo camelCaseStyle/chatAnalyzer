@@ -2,7 +2,7 @@ let fs = require("fs");
 let Message  = require(__dirname+'/Message');
 let Constants = require(__dirname+'/Constants');
 
-let textByLine = fs.readFileSync(__dirname+'/splitChat.txt').toString().split("\n");
+let textByLine = fs.readFileSync(__dirname+'/_chat 6.txt').toString().split("\n");
 let participants = [];
 
 
@@ -40,23 +40,33 @@ function addParticipants(){
 
 // TODO: implement getLongestConversation for participant and not hardcode to 0'th person
 function getLongestResponseTime(){
-    let largest = 0; 
-    let conv; 
-    for(let i = 0; i < messages.length; i++){
-        if(messages[i].name === participants[0]){
-            let responseTime = getResponseTime(messages[i], getNextConversation(i));        
-            if(responseTime > largest){
-                largest = responseTime; 
-                conv = messages[i];
-            }    
+    let idx = 0; 
+    function getLongestResponseTimeForAllParticipant(idx){
+        if(idx == participants.length) return; 
+        let largest = 0; 
+        for(let i = 0; i < messages.length; i++){
+            if(messages[i].name === participants[idx]){
+                let otherConv = getNextConversation(i, participants[idx]);
+                let responseTime = getResponseTime(messages[i], otherConv);        
+                if(responseTime > largest){
+                    largest = responseTime; 
+                    conv = messages[i];
+                    otherLongestConv = otherConv; 
+                }    
+            }
         }
+        console.log(`On ${conv.timestamp} "${conv.name}" said "${conv.message}" \n`);
+        console.log(`${conv.name} recieved a reply ${getPrettyTime(largest)} from ${otherLongestConv.name} that said "${otherLongestConv.message}"\n`);
+        
+        getLongestResponseTimeForAllParticipant(idx+=1);
     }
-    console.log(`On ${conv.timestamp} participant "${conv.name}" said "${conv.message}"` +" \n \n" + getPrettyTime(largest));
+    getLongestResponseTimeForAllParticipant(idx);
 }
-function getNextConversation(idx){
+    
+function getNextConversation(idx, name){
     for(let i = idx; i < messages.length; i++){
         // other participant in the conversation 
-        if(messages[i].name !== participants[0]){
+        if(messages[i].name !== name){
             return messages[i];
         }
     }
