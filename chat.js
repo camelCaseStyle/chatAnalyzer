@@ -1,19 +1,15 @@
 let fs = require("fs");
-let Message  = require('./Message');
-let textByLine = fs.readFileSync(__dirname+'/splitChat.txt').toString().split("\n");
-const regex = new RegExp(/\[(\d+\/\d+\/\d+),\s+(\d+:\d+:\d+\s+[a|p]m)\]\s([a-zA-Z'-\s]+):\s(.+)/);
+let Message  = require(__dirname+'/Message');
+let Constants = require(__dirname+'/Constants');
 
+let textByLine = fs.readFileSync(__dirname+'/splitChat.txt').toString().split("\n");
 let participants = [];
-const ignoreKeywords = ["in","is" ,"for", "of", "a","and", "to", "are", "I", "you", "!", "image", "the", "omitted", "image", "video"];
-const months =["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-let DATE = 1; 
-let NAME = 3; 
-let MESSAGE  = 4; 
+
 
 function splitEachLine(){
     let lines = textByLine.map(elem =>{
-        if(regex.test(elem) && elem != null && elem != ""){
-            return elem.match(regex);
+        if(Constants.REGEX.test(elem) && elem != null && elem != ""){
+            return elem.match(Constants.REGEX);
         }
         
     }).filter(elem =>{
@@ -28,7 +24,7 @@ function splitEachLine(){
                 return new Date(date[0] + " "+getMonth(date[1]) +" "+ date[2] + " "+ elem[2]); 
             }
         }(); 
-        return new Message(elem[DATE], elem[NAME], elem[MESSAGE]);
+        return new Message(elem[Constants.DATE], elem[Constants.NAME], elem[Constants.MESSAGE]);
     })
 }
 function addParticipants(){
@@ -87,7 +83,7 @@ function getPrettyTime(ms){
     return `${Math.floor(days)} days or ${Math.floor(hours)} hours or ${Math.floor(minutes)} minutes or ${Math.floor(seconds)} seconds`;
 }
 function getMonth(date){
-    return months[date-1];
+    return Constants.MONTHS[date-1];
 }
 function getMostUsedWord(){
     let wordMap ={};
@@ -98,7 +94,7 @@ function getMostUsedWord(){
         elem.message.split(" ").forEach(word =>{
             word.replace("\\W", "");
             word = word.trim(); 
-            if(!ignoreKeywords.includes(word) && !word.includes("image" ) && !word.includes("video")){
+            if(!Constants.IGNORE_KEYWORDS.includes(word) && !word.includes("image" ) && !word.includes("video")){
                 words.push(word);
             }
         })
