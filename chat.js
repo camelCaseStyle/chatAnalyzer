@@ -1,7 +1,8 @@
-let fs = require("fs")
-let textByLine = fs.readFileSync('_chat 6.txt').toString().split("\n");
+let fs = require("fs");
+let Message  = require('./Message');
+let textByLine = fs.readFileSync(__dirname+'/splitChat.txt').toString().split("\n");
 const regex = new RegExp(/\[(\d+\/\d+\/\d+),\s+(\d+:\d+:\d+\s+[a|p]m)\]\s([a-zA-Z'-\s]+):\s(.+)/);
-let lines; 
+
 let participants = [];
 const ignoreKeywords = ["in","is" ,"for", "of", "a","and", "to", "are", "I", "you", "!", "image", "the", "omitted", "image", "video"];
 const months =["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -10,7 +11,7 @@ let NAME = 3;
 let MESSAGE  = 4; 
 
 function splitEachLine(){
-    lines = textByLine.map(elem =>{
+    let lines = textByLine.map(elem =>{
         if(regex.test(elem) && elem != null && elem != ""){
             return elem.match(regex);
         }
@@ -18,8 +19,8 @@ function splitEachLine(){
     }).filter(elem =>{
         if(elem != undefined) return elem; 
     }); 
-    // for every element in the array add a JS date object 
-    lines = lines.map(elem =>{   
+    // for every element in the array  conver it into Message object 
+    messages = lines.map(elem =>{   
         elem[1] = function(){
             let date; 
             if(elem != null){
@@ -27,14 +28,13 @@ function splitEachLine(){
                 return new Date(date[0] + " "+getMonth(date[1]) +" "+ date[2] + " "+ elem[2]); 
             }
         }(); 
-        return elem; 
+        return new Message(elem[DATE], elem[NAME], elem[MESSAGE]);
     })
-    //console.log(split)
 }
 function addParticipants(){
-    lines.forEach(elem =>{
-        if(!participants.includes(elem[NAME])){
-            participants.push(elem[NAME]);
+    messages.forEach(elem =>{
+        if(!participants.includes(elem.name)){
+            participants.push(elem.name);
         }
     })
    console.log("Participants: \n"+participants);
@@ -42,27 +42,26 @@ function addParticipants(){
 // get each line ready
 
 
-
+// TODO: implement getLongestConversation for participant and not hardcode to 0'th person
 function getLongestResponseTime(){
     let largest = 0; 
     let conv; 
-    for(let i = 0; i < lines.length; i++){
-        if(lines[i][NAME] === participants[0]){
-            let responseTime = getResponseTime(lines[i], getNextConversation(i));        
+    for(let i = 0; i < messages.length; i++){
+        if(messages[i].name === participants[0]){
+            let responseTime = getResponseTime(messages[i], getNextConversation(i));        
             if(responseTime > largest){
                 largest = responseTime; 
-                conv = lines[i];
-                // console.log(split[i] + "\n "+ getNextConversation(i))
+                conv = messages[i];
             }    
         }
     }
-    console.log(conv +" \n \n" + getPrettyTime(largest));
+    console.log(`On ${conv.timestamp} participant "${conv.name}" said "${conv.message}"` +" \n \n" + getPrettyTime(largest));
 }
 function getNextConversation(idx){
-    for(let i = idx; i < lines.length; i++){
+    for(let i = idx; i < messages.length; i++){
         // other participant in the conversation 
-        if(lines[i][NAME] !== participants[0]){
-            return lines[i];
+        if(messages[i].name !== participants[0]){
+            return messages[i];
         }
     }
     // its possible that this is the last message in the conversation 
@@ -73,7 +72,7 @@ function getNextConversation(idx){
 function getResponseTime(converationOne, conversationTwo){
     try{
         if(conversationTwo != undefined){
-            return Math.abs(converationOne[DATE] - conversationTwo[DATE]);
+            return Math.abs(converationOne.timestamp - conversationTwo.timestamp);
         }
     }catch(error){
         return NaN;
@@ -94,9 +93,9 @@ function getMostUsedWord(){
     let wordMap ={};
     let words = [];  
 
-    lines.forEach(elem =>{
+    messages.forEach(elem =>{
         // for each message split the message by spaces and add word to array 
-        elem[MESSAGE].split(" ").forEach(word =>{
+        elem.message.split(" ").forEach(word =>{
             word.replace("\\W", "");
             word = word.trim(); 
             if(!ignoreKeywords.includes(word) && !word.includes("image" ) && !word.includes("video")){
@@ -126,8 +125,8 @@ function getMostUsedWord(){
 function getLongestConversationInDay(){
     let convFreq = {}; 
     let sortedFreq = []; 
-    lines.forEach(line =>{
-        convFreq[getFormattedDate(line)] = (convFreq[getFormattedDate(line)] || 0) + 1; 
+    messages.forEach(message =>{
+        convFreq[getFormattedDate(message.timestamp)] = (convFreq[getFormattedDate(message.timestamp)] || 0) + 1; 
     })
     
     sortedFreq = Object.keys(convFreq).map(elem =>{
@@ -139,11 +138,12 @@ function getLongestConversationInDay(){
     sortedFreq.sort((a,b)=>{
         return b.frequency - a.frequency;
     })
-    console.log("You chatted most on "+ sortedFreq[0].name);
+    console.log("You chatted most on "+ sortedFreq[0].name + "\nand the second most was on "+sortedFreq[1].name);
+    
 }
 
-function getFormattedDate(conversation){
-    return conversation[DATE].getDate()+"/"+(conversation[DATE].getMonth()+1)+"/"+conversation[DATE].getFullYear().toString().slice(2); 
+function getFormattedDate(message){
+    return message.getDate()+"/"+(message.getMonth()+1)+"/"+message.getFullYear().toString().slice(2); 
 }
 
 
