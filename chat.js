@@ -35,10 +35,7 @@ function addParticipants(){
     })
    console.log("Participants: \n"+participants);
 }
-// get each line ready
 
-
-// TODO: implement getLongestConversation for participant and not hardcode to 0'th person
 function getLongestResponseTime(){
     let idx = 0; 
     function getLongestResponseTimeForAllParticipant(idx){
@@ -147,7 +144,36 @@ function getLongestConversationInDay(){
     console.log("You chatted most on "+ sortedFreq[0].name + "\nand the second most was on "+sortedFreq[1].name);
     
 }
+function getMostUserWordByParticipant(){
+    let idx = 0; 
+    function getMostUsed(idx){
+        let words = []; 
+        if(idx == participants.length) return; 
+        messages.filter(elem => elem.name === participants[idx]).forEach(elem =>{
+            elem.message.split(" ").forEach(word =>{
+                if(!Constants.IGNORE_KEYWORDS.includes(word) && !word.includes("image")){
+                    words.push(word);
+                }
+            })
+        })
+        let wordFreq = {}; 
+        words.forEach(word =>{
+            wordFreq[word] = (wordFreq[word] || 0) + 1; 
+        })
+        sortedFreq = Object.keys(wordFreq).map(elem =>{
+            return {
+                name: elem, 
+                frequency : wordFreq[elem]
+            }
+        }).sort((a,b) =>{
+            return b.frequency - a.frequency; 
+        })
+        console.log(`${participants[idx]} used the word ${JSON.stringify(sortedFreq[0].name)} the most`);
+        getMostUsed(idx += 1);
+    }
+    getMostUsed(idx);
 
+}
 function getFormattedDate(message){
     return message.getDate()+"/"+(message.getMonth()+1)+"/"+message.getFullYear().toString().slice(2); 
 }
@@ -162,6 +188,8 @@ function analyze(){
     getLongestResponseTime();
     // get the most used word in conversation
     getMostUsedWord();
+    // get most used by words by certain participants
+    getMostUserWordByParticipant();
     // get day on which most conversations took place 
     getLongestConversationInDay(); 
 }
